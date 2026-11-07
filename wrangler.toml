@@ -1,0 +1,13 @@
+name = "paycheck-api"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+PLAID_ENV = "sandbox"            # change to "production" once Plaid approves your account
+PLAID_COUNTRIES = "US"           # e.g. "US,CA" or "GB,IE"
+ALLOWED_ORIGIN = "https://YOUR-USER.github.io"
+CLAUDE_MODEL = "claude-sonnet-5-5"
+
+[[kv_namespaces]]
+binding = "STORE"
+id = "PASTE_KV_ID_HERE"

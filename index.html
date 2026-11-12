@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker - Financial Management</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">💰 ExpenseTracker</div>
+        <div class="nav-links">
+            <button onclick="showTab('dashboard')" id="tab-dashboard">Dashboard</button>
+            <button onclick="showTab('analytics')" id="tab-analytics" class="active">Analytics</button>
+            <button onclick="showTab('transactions')" id="tab-transactions">Transactions</button>
+            <button onclick="showTab('budgets')" id="tab-budgets">Budgets</button>
+        </div>
+    </nav>
+
+    <!-- Dashboard Tab -->
+    <div id="dashboard" class="tab-content active">
+        <h1>Dashboard</h1>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Income</div>
+                <div class="stat-value" id="total-income">$0.00</div>
+                <div class="stat-trend up">▲ +12%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Expenses</div>
+                <div class="stat-value" id="total-expense">$0.00</div>
+                <div class="stat-trend down">▼ -8%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Savings Goal %</div>
+                <div class="stat-value" id="savings-progress">0%</div>
+                <div class="stat-trend neutral">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Budgets</div>
+                <div class="stat-value" id="budget-active">0</div>
+                <div class="stat-trend neutral">—</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>Recent Transactions</h2>
+                <div id="recent-transaction-list" class="transaction-list"></div>
+            </div>
+            <div class="card">
+                <h2>Upcoming Budget Alerts</h2>
+                <div id="budget-alerts-list" class="alert-list"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-stats">
+            <h2>Quick Actions</h2>
+            <button onclick="showModal('bankLinkModal')" class="btn btn-primary">🏦 Link a Bank</button>
+            <button onclick="showModal('categoryModal')" class="btn btn-secondary">📊 Add Category</button>
+            <button onclick="openExportDialog()" class="btn btn-success">💾 Export Data</button>
+        </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div id="analytics" class="tab-content">
+        <h1>Analytics & Reports</h1>
+
+        <div class="analytics-controls">
+            <button onclick="showModal('categoryChartModal')" class="btn btn-primary">📈 Category Analysis</button>
+            <button onclick="showModal('budgetChartModal')" class="btn btn-secondary">💵 Budget Tracking</button>
+            <button onclick="showModal('trendChartModal')" class="btn btn-success">📉 Spending Trends</button>
+        </div>
+
+        <div id="chart-container" class="charts-grid"></div>
+    </div>
+
+    <!-- Transactions Tab -->
+    <div id="transactions" class="tab-content">
+        <h1>Transactions & Categories</h1>
+        
+        <div class="form-group">
+            <label for="transactionType">Type</label>
+            <select id="transactionType" onchange="toggleExpenseInputs()">
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount ($)</label>
+            <input type="number" id="amount" step="0.01" placeholder="50.00" oninput="calculateTotals()">
+        </div>
+
+        <div class="form-group" id="expenseInputs">
+            <label for="transactionDate">Date</label>
+            <input type="date" id="transactionDate" class="form-control" onchange="loadTransactions()">
+        </div>
+
+        <div class="form-group" id="incomeInputs">
+            <label for="transactionDate">Date</label>
+            <input type="date" id="incomeDate" class="form-control" onchange="loadIncome()">
+        </div>
+
+        <div class="inputs-grid">
+            <select id="category" onchange="applyCategoryFilter()">
+                <option value="">Select Category (AI Suggestions)</option>
+            </select>
+            <input type="text" id="transactionDescription" placeholder="Description/Notes..." style="width:200px;">
+            <button onclick="addTransaction()" class="btn btn-primary">Add Transaction</button>
+        </div>
+
+        <h3>All Transactions (<span id="total-count">0</span>)</h3>
+        <div id="all-transactions-list" class="transaction-list"></div>
+    </div>
+
+    <!-- Budgets Tab -->
+    <div id="budgets" class="tab-content">
+        <h1>Budgeting & Savings Goals</h1>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>Your Budgets</h2>
+                <div id="budget-list"></div>
+            </div>
+            
+            <div class="card">
+                <h2>Savings Goals</h2>
+                <div id="savings-list"></div>
+            </div>
+            
+            <div class="card">
+                <h2>Debt Tracker</h2>
+                <p><strong>Total Debt:</strong> <span id="debt-total">$0.00</span></p>
+                <p><strong>Debt-to-Income Ratio:</strong> <span id="debt-ti">0%</span></p>
+            </div>
+        </div>
+
+        <h3>Monthly Budgeting Plan</h3>
+        <div class="form-group">
+            <label for="budgetMonth">Select Month/Year</label>
+            <input type="month" id="budgetMonth" onchange="loadBudgets()">
+        </div>
+
+        <h3>Award Savings Progress</h3>
+        <div id="awards-list"></div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div id="ai-modal" class="modal">
+        <div class="ai-chat">
+            <div class="ai-message">💬 Hello! I'm your AI financial assistant.</div>
+            <input type="text" id="ai-input" placeholder="Ask me anything about my finances..." style="width:100%; margin: 8px 0;">
+            <button onclick="askAI()" class="btn btn-primary">🤖 Ask AI</button>
+        </div>
+    </div>
+
+    <!-- Bank Link Modal -->
+    <div id="bank-link-modal" class="modal">
+        <div class="modal-content">
+            <h2>Link a Bank</h2>
+            <p>Connect an Australian bank account to start syncing transactions.</p>
+            <div class="card">
+                <h3>Baciq (Australia)</h3>
+                <input type="text" id="bank-name-baciq" placeholder="Bank Name or Account Type">
+                <button onclick="connectBank('baciq')" class="btn btn-success">Connect to Baciq</button>
+            </div>
+            <br>
+            <h3>Akahu (Australia)</h3>
+            <input type="text" id="bank-name-aakash" placeholder="Account Type or Bank Name">
+            <button onclick="connectBank('aakash')" class="btn btn-success">Connect to Akahu</button>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content">
+            <h2>Add Category</h2>
+            <input type="text" id="category-name" placeholder="Category Name">
+            <select id="category-subtype">
+                <option value="">-- Select Subtype --</option>
+                <option value="Food & Dining">Food & Dining</option>
+                <option value="Groceries">Groceries</option>
+                <option value="Transport">Transport</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Housing & Rent">Housing & Rent</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Education">Education</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+            </select>
+            <button onclick="addCategory()" class="btn btn-primary">Add Category</button>
+        </div>
+    </div>
+
+    <!-- Chart Modals -->
+    <div id="categoryChartModal" class="modal">
+        <div class="modal-content">
+            <h2>Category Analysis</h2>
+            <div id="category-chart-container"></div>
+            <button onclick="closeModals()" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+
+    <div id="budgetChartModal" class="modal">
+        <div class="modal-content">
+            <h2>Budget Tracking</h2>
+            <p>Your current budgets and progress</p>
+            <div id="budget-chart-container"></div>
+            <button onclick="closeModals()" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+
+    <div id="trendChartModal" class="modal">
+        <div class="modal-content">
+            <h2>Spending Trends</h2>
+            <p>This week's spending breakdown by category</p>
+            <div id="trend-chart-container"></div>
+            <button onclick="closeModals()" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <h2>Export Data</h2>
+            <p>Download your transaction data as CSV or PDF</p>
+            <div class="form-group">
+                <label for="export-format">Format</label>
+                <select id="export-format" onchange="prepareExport()">
+                    <option value="csv">CSV (Excel compatible)</option>
+                    <option value="pdf">PDF Report</option>
+                </select>
+            </div>
+            <button onclick="downloadExport()" class="btn btn-primary">Download</button>
+        </div>
+    </div>
+
+    <!-- Savings Modal -->
+    <div id="savings-modal" class="modal">
+        <div class="modal-content">
+            <h2>Savings Goals</h2>
+            <p>Track your savings progress toward goals</p>
+            <div id="savings-progress-bar"></div>
+            <button onclick="closeModals()" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+
+    <!-- AI Chat Modal -->
+    <div id="ai-chat-modal" class="modal ai-chat">
+        <div class="chat-history">
+            <div class="ai-message"><strong>Ai Assistant:</strong> How can I help you with your finances today?</div>
+        </div>
+        <input type="text" id="ai-input" placeholder="Ask anything... (e.g., 'Show my food budget' or 'Where did I spend 20%?')" style="width:100%; margin: 8px 0;">
+        <button onclick="askAI()" class="btn btn-primary">🤖 Ask AI</button>
+    </div>
+
+    <!-- Modal Containers -->
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
